@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🛒 Basket Summary</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    table { width: 100%; border-collapse: collapse; font-size: 15px; }
+    th, td { padding: 8px; border: 1px solid #ccc; }
+    th { background: #f0f0f0; }
+    tfoot td { background: #e0e0e0; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h2>🛒 Basket Summary</h2>
+  <div id="cart">Loading basket...</div>
+
+  <script>
+  async function loadBasket() {
+    try {
+      const res = await fetch("https://sabrina-backend-1-jxzk.onrender.com/getBasket/basket00188");
+      const data = await res.json();
+
+      if (!Array.isArray(data) || data.length === 0) {
+        document.getElementById("cart").innerHTML = `
+          <p>🧺 Basket is currently empty.</p>
+        `;
+        return;
+      }
+
+      let total = 0;
+      let rows = "";
+
+      data.forEach(item => {
+        const price = parseFloat(item.price || 0);
+        const qty = parseInt(item.quantity || 0);
+        const subtotal = price * qty;
+        total += subtotal;
+
+        rows += `
+          <tr>
+            <td>${item.display_id}</td>
+            <td style="text-align:right;">₱${price.toFixed(2)}</td>
+            <td style="text-align:right;">${qty}</td>
+            <td style="text-align:right;">₱${subtotal.toFixed(2)}</td>
+          </tr>
+        `;
+      });
+
+      const html = `
+        <table>
+          <thead>
+            <tr>
+              <th>Display ID</th>
+              <th>Price (₱)</th>
+              <th>Qty</th>
+              <th>Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3" style="text-align:right;">Total</td>
+              <td style="text-align:right;">₱${total.toFixed(2)}</td>
+            </tr>
+          </tfoot>
+        </table>
+      `;
+
+      document.getElementById("cart").innerHTML = html;
+    } catch (err) {
+      document.getElementById("cart").innerHTML = `
+        <p>⚠️ Error loading basket.</p>
+      `;
+    }
+  }
+
+  loadBasket();
+  setInterval(loadBasket, 5000);
+  </script>
+</body>
+</html>
