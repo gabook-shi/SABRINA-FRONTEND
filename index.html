@@ -10,19 +10,23 @@
     table { border-collapse: collapse; width: 100%; margin-top: 20px; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
     #qrcode { margin-top: 20px; }
+    button { margin-top: 20px; padding: 10px 20px; font-size: 16px; }
   </style>
 </head>
 <body>
   <h1>🧺 <span>Basket Summary</span></h1>
   <div id="cart">Loading basket...</div>
+  <button id="checkoutBtn">Checkout</button>
   <div id="qrcode"></div>
 
   <!-- QRCode.js library -->
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
   <script>
+    let basketId = "basket00188"; // fixed for demo, can be dynamic later
+
     async function loadBasket() {
       try {
-        const res = await fetch("https://sabrina-backend-1-jxzk.onrender.com/getBasket/basket00188");
+        const res = await fetch(`https://sabrina-backend-1-jxzk.onrender.com/getBasket/${basketId}`);
         const data = await res.json();
 
         if (!Array.isArray(data) || data.length === 0) {
@@ -47,20 +51,21 @@
         html += "</table>";
         document.getElementById("cart").innerHTML = html;
 
-        // Encode basket data into QR code
-        let basketPayload = JSON.stringify({items: data, total: total});
-        document.getElementById("qrcode").innerHTML = ""; // clear old QR
-        new QRCode(document.getElementById("qrcode"), {
-          text: basketPayload,
-          width: 200,
-          height: 200
-        });
-
       } catch (err) {
         document.getElementById("cart").innerHTML = "⚠️ Error loading basket.";
         console.error("Fetch error:", err);
       }
     }
+
+    // Checkout button handler
+    document.getElementById("checkoutBtn").addEventListener("click", () => {
+      document.getElementById("qrcode").innerHTML = ""; // clear old QR
+      new QRCode(document.getElementById("qrcode"), {
+        text: basketId, // ✅ only basket ID encoded
+        width: 200,
+        height: 200
+      });
+    });
 
     loadBasket();
   </script>
