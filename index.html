@@ -57,15 +57,16 @@
       }
     }
 
-    // Checkout button handler
-    document.getElementById("checkoutBtn").addEventListener("click", () => {
-      document.getElementById("qrcode").innerHTML = ""; // clear old QR
-      new QRCode(document.getElementById("qrcode"), {
-        text: `https://your-pos-page.com/?basket=${basketId}`, // ✅ phone opens POS page
-        width: 200,
-        height: 200
-      });
-    });
+   // Checkout button handler
+document.getElementById("checkoutBtn").addEventListener("click", () => {
+  document.getElementById("qrcode").innerHTML = ""; // clear old QR
+  new QRCode(document.getElementById("qrcode"), {
+    text: `https://gabook-shi.github.io/CASHIER-FRONTEND-POS/?basket=${basketId}`, 
+    width: 200,
+    height: 200
+  });
+});
+
 
     loadBasket();
   </script>
