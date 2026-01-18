@@ -2,83 +2,67 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>🛒 Basket Summary</title>
+  <title>Basket Summary</title>
   <style>
-    body { font-family: sans-serif; margin: 20px; }
-    table { width: 100%; border-collapse: collapse; font-size: 15px; }
-    th, td { padding: 8px; border: 1px solid #ccc; }
-    th { background: #f0f0f0; }
-    tfoot td { background: #e0e0e0; font-weight: bold; }
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { display: flex; align-items: center; }
+    h1 span { margin-left: 10px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    #qrcode { margin-top: 20px; }
   </style>
 </head>
 <body>
-  <h2>🛒 Basket Summary</h2>
+  <h1>🧺 <span>Basket Summary</span></h1>
   <div id="cart">Loading basket...</div>
+  <div id="qrcode"></div>
 
+  <!-- QRCode.js library -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
   <script>
-  async function loadBasket() {
-    try {
-      const res = await fetch("https://sabrina-backend-1-jxzk.onrender.com/getBasket/basket00188");
-      const data = await res.json();
+    async function loadBasket() {
+      try {
+        const res = await fetch("https://sabrina-backend-1-jxzk.onrender.com/getBasket/basket00188");
+        const data = await res.json();
 
-      if (!Array.isArray(data) || data.length === 0) {
-        document.getElementById("cart").innerHTML = `
-          <p>🧺 Basket is currently empty.</p>
-        `;
-        return;
-      }
+        if (!Array.isArray(data) || data.length === 0) {
+          document.getElementById("cart").innerHTML = "🛒 Basket is currently empty.";
+          return;
+        }
 
-      let total = 0;
-      let rows = "";
-
-      data.forEach(item => {
-        const price = parseFloat(item.price || 0);
-        const qty = parseInt(item.quantity || 0);
-        const subtotal = price * qty;
-        total += subtotal;
-
-        rows += `
-          <tr>
+        // Build table
+        let html = "<table><tr><th>Item</th><th>Price</th><th>Qty</th><th>Subtotal</th></tr>";
+        let total = 0;
+        data.forEach(item => {
+          let subtotal = item.price * item.quantity;
+          total += subtotal;
+          html += `<tr>
             <td>${item.display_id}</td>
-            <td style="text-align:right;">₱${price.toFixed(2)}</td>
-            <td style="text-align:right;">${qty}</td>
-            <td style="text-align:right;">₱${subtotal.toFixed(2)}</td>
-          </tr>
-        `;
-      });
+            <td>₱${item.price.toFixed(2)}</td>
+            <td>${item.quantity}</td>
+            <td>₱${subtotal.toFixed(2)}</td>
+          </tr>`;
+        });
+        html += `<tr><td colspan="3"><strong>Total</strong></td><td><strong>₱${total.toFixed(2)}</strong></td></tr>`;
+        html += "</table>";
+        document.getElementById("cart").innerHTML = html;
 
-      const html = `
-        <table>
-          <thead>
-            <tr>
-              <th>Display ID</th>
-              <th>Price (₱)</th>
-              <th>Qty</th>
-              <th>Subtotal</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rows}
-          </tbody>
-          <tfoot>
-            <tr>
-              <td colspan="3" style="text-align:right;">Total</td>
-              <td style="text-align:right;">₱${total.toFixed(2)}</td>
-            </tr>
-          </tfoot>
-        </table>
-      `;
+        // Encode basket data into QR code
+        let basketPayload = JSON.stringify({items: data, total: total});
+        document.getElementById("qrcode").innerHTML = ""; // clear old QR
+        new QRCode(document.getElementById("qrcode"), {
+          text: basketPayload,
+          width: 200,
+          height: 200
+        });
 
-      document.getElementById("cart").innerHTML = html;
-    } catch (err) {
-      document.getElementById("cart").innerHTML = `
-        <p>⚠️ Error loading basket.</p>
-      `;
+      } catch (err) {
+        document.getElementById("cart").innerHTML = "⚠️ Error loading basket.";
+        console.error("Fetch error:", err);
+      }
     }
-  }
 
-  loadBasket();
-  setInterval(loadBasket, 5000);
+    loadBasket();
   </script>
 </body>
 </html>
