@@ -61,7 +61,7 @@
     document.getElementById("checkoutBtn").addEventListener("click", () => {
       document.getElementById("qrcode").innerHTML = ""; // clear old QR
       new QRCode(document.getElementById("qrcode"), {
-        text: basketId, // ✅ only basket ID encoded
+        text: `https://your-pos-page.com/?basket=${basketId}`, // ✅ phone opens POS page
         width: 200,
         height: 200
       });
