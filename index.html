@@ -2,72 +2,132 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Basket Summary</title>
+  <title>Smart Basket</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    h1 { display: flex; align-items: center; }
-    h1 span { margin-left: 10px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-    #qrcode { margin-top: 20px; }
-    button { margin-top: 20px; padding: 10px 20px; font-size: 16px; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #007bff;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-size: 20px;
+      font-weight: 600;
+    }
+    .basket-container {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 0 15px;
+    }
+    .basket-card {
+      display: flex;
+      align-items: center;
+      background: white;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .product-icon {
+      font-size: 28px;
+      margin-right: 15px;
+    }
+    .product-info h3 {
+      margin: 0;
+      font-weight: 600;
+      font-size: 16px;
+    }
+    .product-info p {
+      margin: 3px 0 0;
+      color: #555;
+    }
+    footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #fff;
+      padding: 15px;
+      box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .total {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .btn-checkout {
+      background: #28a745;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .btn-checkout:hover {
+      background: #218838;
+    }
   </style>
 </head>
 <body>
-  <h1>🧺 <span>Basket Summary</span></h1>
-  <div id="cart">Loading basket...</div>
-  <button id="checkoutBtn">Checkout</button>
-  <div id="qrcode"></div>
+  <header>🛒 Smart Basket</header>
+  <div class="basket-container" id="basket"></div>
+  <footer>
+    <div class="total" id="total">Total: ₱0</div>
+    <button class="btn-checkout">Checkout</button>
+  </footer>
 
-  <!-- QRCode.js library -->
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
   <script>
-    let basketId = "basket00188"; // fixed for demo, can be dynamic later
-
     async function loadBasket() {
       try {
-        const res = await fetch(`https://sabrina-backend-1-jxzk.onrender.com/getBasket/${basketId}`);
-        const data = await res.json();
+        const basketId = "basket00188"; // replace with dynamic ID if needed
+        const response = await fetch(`https://sabrina-backend-1-jxzk.onrender.com/getBasket/${basketId}`);
+        const data = await response.json();
 
-        if (!Array.isArray(data) || data.length === 0) {
-          document.getElementById("cart").innerHTML = "🛒 Basket is currently empty.";
-          return;
-        }
+        const basketContainer = document.getElementById("basket");
+        basketContainer.innerHTML = "";
 
-        // Build table
-        let html = "<table><tr><th>Item</th><th>Price</th><th>Qty</th><th>Subtotal</th></tr>";
         let total = 0;
-        data.forEach(item => {
-          let subtotal = item.price * item.quantity;
-          total += subtotal;
-          html += `<tr>
-            <td>${item.display_id}</td>
-            <td>₱${item.price.toFixed(2)}</td>
-            <td>${item.quantity}</td>
-            <td>₱${subtotal.toFixed(2)}</td>
-          </tr>`;
-        });
-        html += `<tr><td colspan="3"><strong>Total</strong></td><td><strong>₱${total.toFixed(2)}</strong></td></tr>`;
-        html += "</table>";
-        document.getElementById("cart").innerHTML = html;
 
+        data.items.forEach(item => {
+          total += item.price * item.quantity;
+
+          const card = document.createElement("div");
+          card.className = "basket-card";
+
+          const icon = document.createElement("div");
+          icon.className = "product-icon";
+          // simple emoji mapping (replace with images if you want)
+          if (item.display_id.includes("MILK")) icon.textContent = "🥛";
+          else if (item.display_id.includes("BREAD")) icon.textContent = "🍞";
+          else if (item.display_id.includes("EGGS")) icon.textContent = "🥚";
+          else icon.textContent = "📦";
+
+          const info = document.createElement("div");
+          info.className = "product-info";
+          info.innerHTML = `<h3>${item.display_id}</h3><p>₱${item.price} x ${item.quantity}</p>`;
+
+          card.appendChild(icon);
+          card.appendChild(info);
+          basketContainer.appendChild(card);
+        });
+
+        document.getElementById("total").textContent = `Total: ₱${total}`;
       } catch (err) {
-        document.getElementById("cart").innerHTML = "⚠️ Error loading basket.";
-        console.error("Fetch error:", err);
+        console.error("Error loading basket:", err);
       }
     }
 
-   // Checkout button handler
-document.getElementById("checkoutBtn").addEventListener("click", () => {
-  document.getElementById("qrcode").innerHTML = ""; // clear old QR
-  new QRCode(document.getElementById("qrcode"), {
-    text: `https://gabook-shi.github.io/CASHIER-FRONTEND-POS/?basket=${basketId}`, 
-    width: 200,
-    height: 200
-  });
-});
-
-
+    // Auto-refresh basket every 5 seconds
+    setInterval(loadBasket, 5000);
     loadBasket();
   </script>
 </body>
