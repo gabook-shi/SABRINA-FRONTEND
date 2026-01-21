@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>Smart Basket</title>
+  <!-- Viewport for mobile scaling -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
@@ -75,6 +77,56 @@
     .btn-checkout:hover {
       background: #218838;
     }
+    /* Toast notification */
+    .toast {
+      visibility: hidden;
+      min-width: 250px;
+      background-color: #007bff;
+      color: white;
+      text-align: center;
+      border-radius: 8px;
+      padding: 16px;
+      position: fixed;
+      z-index: 9999;
+      left: 50%;
+      bottom: 30px;
+      transform: translateX(-50%);
+      font-size: 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    .toast.show {
+      visibility: visible;
+      animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    }
+    @keyframes fadein {
+      from {bottom: 0; opacity: 0;}
+      to {bottom: 30px; opacity: 1;}
+    }
+    @keyframes fadeout {
+      from {bottom: 30px; opacity: 1;}
+      to {bottom: 0; opacity: 0;}
+    }
+    /* Mobile responsiveness */
+    @media (max-width: 480px) {
+      .basket-card {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .product-icon {
+        margin-bottom: 8px;
+      }
+      footer {
+        flex-direction: column;
+        text-align: center;
+      }
+      .btn-checkout {
+        margin-top: 10px;
+        width: 100%;
+      }
+      .total {
+        margin-bottom: 10px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -82,8 +134,11 @@
   <div class="basket-container" id="basket"></div>
   <footer>
     <div class="total" id="total">Total: ₱0</div>
-    <button class="btn-checkout">Checkout</button>
+    <button class="btn-checkout" onclick="checkout()">Checkout</button>
   </footer>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast">Basket updated!</div>
 
   <script>
     async function loadBasket() {
@@ -105,7 +160,6 @@
 
           const icon = document.createElement("div");
           icon.className = "product-icon";
-          // simple emoji mapping (replace with images if you want)
           if (item.display_id.includes("MILK")) icon.textContent = "🥛";
           else if (item.display_id.includes("BREAD")) icon.textContent = "🍞";
           else if (item.display_id.includes("EGGS")) icon.textContent = "🥚";
@@ -121,9 +175,22 @@
         });
 
         document.getElementById("total").textContent = `Total: ₱${total}`;
+        showToast("🛒 Basket updated!");
       } catch (err) {
         console.error("Error loading basket:", err);
+        showToast("❌ Error updating basket");
       }
+    }
+
+    function checkout() {
+      showToast("✅ Checkout initiated!");
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.className = "toast show";
+      setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
     }
 
     // Auto-refresh basket every 5 seconds
@@ -132,3 +199,4 @@
   </script>
 </body>
 </html>
+
