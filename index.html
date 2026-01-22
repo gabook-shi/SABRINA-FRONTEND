@@ -144,7 +144,7 @@
     async function loadBasket() {
       try {
         const basketId = "basket00188"; // replace with dynamic ID if needed
-        const response = await fetch(`https://sabrina-backend-1-jxzk.onrender.com/getBasket/00188`);
+        const response = await fetch(`https://sabrina-backend-mwqy.onrender.com/getBasket/${basketId}`);
         const data = await response.json();
 
         const basketContainer = document.getElementById("basket");
@@ -199,4 +199,5 @@
   </script>
 </body>
 </html>
+
 
