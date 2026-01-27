@@ -57,11 +57,6 @@
       margin: 20px 0;
       display: none;
     }
-    .qr-container canvas {
-      border: 6px solid #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    }
     footer {
       position: fixed;
       bottom: 0;
@@ -130,7 +125,7 @@
 
 <script>
   const backend = "https://sabrina-backend-mwqy.onrender.com";
-  const basketId = "basket001"; // your current basketId
+  const basketId = "basket001"; // Change if needed
 
   let previousUIDs = new Set();
 
@@ -205,8 +200,14 @@
       qrContainer.style.display = "block";
       qrContainer.innerHTML = "";
 
-      // Generate QR with basketId only
-      QRCode.toCanvas(qrContainer, basketId, { width: 220 });
+      // Create canvas for QR code
+      const canvas = document.createElement("canvas");
+      qrContainer.appendChild(canvas);
+
+      // Generate QR code on the canvas
+      QRCode.toCanvas(canvas, basketId, { width: 220 }, function(error) {
+        if (error) console.error(error);
+      });
 
       showToast("✅ Show this QR to cashier");
     } catch (err) {
@@ -215,7 +216,7 @@
     }
   }
 
-  // Poll basket every 2s
+  // Poll basket every 2 seconds
   setInterval(loadBasket, 2000);
   loadBasket();
 </script>
