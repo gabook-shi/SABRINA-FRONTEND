@@ -190,29 +190,24 @@
   }
 
   // Checkout function
-  async function checkout() {
-  try {
-    const res = await fetch(`${backend}/basket/checkout`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ basketId })
-    });
+ async function confirmPayment() {
+  if (!currentBasketId) return showToast("❌ No basket");
 
-    const data = await res.json();
+  await fetch(`${backend}/basket/decision`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ basketId: currentBasketId, paid: true })
+  });
 
-    const qrContainer = document.getElementById("qr");
-    qrContainer.style.display = "block";
-    qrContainer.innerHTML = "";
-    QRCode.toCanvas(qrContainer, basketId, { width: 220 });
+  // Clear basket for next customer
+  await fetch(`${backend}/basket/update`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ basketId: currentBasketId, uids: [] })
+  });
 
-    showToast("✅ Show this QR to cashier");
-
-    // Do NOT clear basket items here
-
-  } catch (err) {
-    console.error(err);
-    showToast("❌ Checkout failed");
-  }
+  showToast("✅ Payment confirmed");
+  resetPOS();
 }
 
   // Poll basket every 2 seconds
