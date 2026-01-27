@@ -3,140 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <title>Smart Basket</title>
-  <!-- Viewport for mobile scaling -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- QRCode Library -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+
   <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: #f4f6f9;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      background: #007bff;
-      color: white;
-      padding: 15px;
-      text-align: center;
-      font-size: 20px;
-      font-weight: 600;
-    }
-    .basket-container {
-      max-width: 600px;
-      margin: 20px auto;
-      padding: 0 15px;
-    }
-    .basket-card {
-      display: flex;
-      align-items: center;
-      background: white;
-      padding: 15px;
-      margin: 10px 0;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    .product-icon {
-      font-size: 28px;
-      margin-right: 15px;
-    }
-    .product-info h3 {
-      margin: 0;
-      font-weight: 600;
-      font-size: 16px;
-    }
-    .product-info p {
-      margin: 3px 0 0;
-      color: #555;
-    }
-    .qr-container {
-      text-align: center;
-      margin: 20px 0;
-      display: none; /* hidden by default */
-    }
-    .qr-container img {
-      border: 6px solid #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    }
-    footer {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #fff;
-      padding: 15px;
-      box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .total {
-      font-size: 18px;
-      font-weight: 600;
-    }
-    .btn-checkout {
-      background: #28a745;
-      color: white;
-      padding: 12px 20px;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    .btn-checkout:hover {
-      background: #218838;
-    }
-    /* Toast notification */
-    .toast {
-      visibility: hidden;
-      min-width: 250px;
-      background-color: #007bff;
-      color: white;
-      text-align: center;
-      border-radius: 8px;
-      padding: 16px;
-      position: fixed;
-      z-index: 9999;
-      left: 50%;
-      bottom: 30px;
-      transform: translateX(-50%);
-      font-size: 16px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    }
-    .toast.show {
-      visibility: visible;
-      animation: fadein 0.5s, fadeout 0.5s 2.5s;
-    }
-    @keyframes fadein {
-      from {bottom: 0; opacity: 0;}
-      to {bottom: 30px; opacity: 1;}
-    }
-    @keyframes fadeout {
-      from {bottom: 30px; opacity: 1;}
-      to {bottom: 0; opacity: 0;}
-    }
-    /* Mobile responsiveness */
-    @media (max-width: 480px) {
-      .basket-card {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .product-icon {
-        margin-bottom: 8px;
-      }
-      footer {
-        flex-direction: column;
-        text-align: center;
-      }
-      .btn-checkout {
-        margin-top: 10px;
-        width: 100%;
-      }
-      .total {
-        margin-bottom: 10px;
-      }
-    }
+    /* --- Your existing CSS (same as before) --- */
+    body { font-family: 'Poppins', sans-serif; background: #f4f6f9; margin: 0; padding: 0; }
+    header { background: #007bff; color: white; padding: 15px; text-align: center; font-size: 20px; font-weight: 600; }
+    .basket-container { max-width: 600px; margin: 20px auto; padding: 0 15px; }
+    .basket-card { display: flex; align-items: center; background: white; padding: 15px; margin: 10px 0; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .product-icon { font-size: 28px; margin-right: 15px; }
+    .product-info h3 { margin: 0; font-weight: 600; font-size: 16px; }
+    .product-info p { margin: 3px 0 0; color: #555; }
+    .qr-container { text-align: center; margin: 20px 0; display: none; }
+    footer { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; padding: 15px; box-shadow: 0 -2px 6px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+    .total { font-size: 18px; font-weight: 600; }
+    .btn-checkout { background: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; transition: 0.3s; }
+    .btn-checkout:hover { background: #218838; }
+    .toast { visibility: hidden; min-width: 250px; background-color: #007bff; color: white; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 9999; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+    .toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+    @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+    @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+    @media (max-width: 480px) { .basket-card { flex-direction: column; align-items: flex-start; } .product-icon { margin-bottom: 8px; } footer { flex-direction: column; text-align: center; } .btn-checkout { margin-top: 10px; width: 100%; } .total { margin-bottom: 10px; } }
   </style>
 </head>
 <body>
@@ -148,104 +41,84 @@
     <button class="btn-checkout" onclick="checkout()">Checkout</button>
   </footer>
 
-  <!-- Toast notification -->
   <div id="toast" class="toast">Basket updated!</div>
 
- <script>
-  const backend = "https://sabrina-backend-mwqy.onrender.com";
-  const basketId = "basket001";
+  <script>
+    const backend = "https://sabrina-backend-mwqy.onrender.com";
+    const basketId = "basket001"; // make sure this matches your DB
 
-  let previousUIDs = new Set();
+    let previousUIDs = new Set();
 
-  function hasBasketChanged(items) {
-    const newUIDs = new Set(items.map(i => i.uidItem));
-
-    if (newUIDs.size !== previousUIDs.size) return true;
-
-    for (let uid of newUIDs) {
-      if (!previousUIDs.has(uid)) return true;
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.className = "toast show";
+      setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
     }
-    return false;
-  }
 
-  async function loadBasket() {
-    try {
-      const res = await fetch(`${backend}/basket/${basketId}`);
-      const basket = await res.json();
-
-      if (!basket || !Array.isArray(basket.items)) return;
-
-      if (!hasBasketChanged(basket.items)) return;
-
-      const basketContainer = document.getElementById("basket");
-      basketContainer.innerHTML = "";
-
-      let total = 0;
-
-      basket.items.forEach(item => {
-        total += item.itemPrice;
-
-        const card = document.createElement("div");
-        card.className = "basket-card";
-
-        const icon = document.createElement("div");
-        icon.className = "product-icon";
-        icon.textContent = "📦";
-
-        const info = document.createElement("div");
-        info.className = "product-info";
-        info.innerHTML = `
-          <h3>${item.itemName}</h3>
-          <p>₱${item.itemPrice}</p>
-        `;
-
-        card.appendChild(icon);
-        card.appendChild(info);
-        basketContainer.appendChild(card);
-      });
-
-      document.getElementById("total").textContent = `Total: ₱${total}`;
-      previousUIDs = new Set(basket.items.map(i => i.uidItem));
-
-      showToast("🛒 Basket updated!");
-    } catch (err) {
-      console.error(err);
-      showToast("❌ Failed to load basket");
+    function hasBasketChanged(items) {
+      const newUIDs = new Set(items.map(i => i.uidItem));
+      if (newUIDs.size !== previousUIDs.size) return true;
+      for (let uid of newUIDs) if (!previousUIDs.has(uid)) return true;
+      return false;
     }
-  }
 
-  async function checkout() {
-    try {
-      const res = await fetch(`${backend}/basket/checkout`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ basketId })
-      });
+    async function loadBasket() {
+      try {
+        const res = await fetch(`${backend}/basket/${basketId}`);
+        const basket = await res.json();
+        if (!basket || !Array.isArray(basket.items)) return;
+        if (!hasBasketChanged(basket.items)) return;
 
-      const data = await res.json();
+        const basketContainer = document.getElementById("basket");
+        basketContainer.innerHTML = "";
+        let total = 0;
 
-      const qrContainer = document.getElementById("qr");
-      qrContainer.style.display = "block";
-      qrContainer.innerHTML = "";
+        basket.items.forEach(item => {
+          total += item.itemPrice;
+          const card = document.createElement("div");
+          card.className = "basket-card";
+          card.innerHTML = `<div class="product-icon">📦</div>
+            <div class="product-info"><h3>${item.itemName}</h3><p>₱${item.itemPrice}</p></div>`;
+          basketContainer.appendChild(card);
+        });
 
-      QRCode.toCanvas(qrContainer, data.qrData, { width: 220 });
-
-      showToast("✅ Show this QR to cashier");
-    } catch (err) {
-      console.error(err);
-      showToast("❌ Checkout failed");
+        document.getElementById("total").textContent = `Total: ₱${total}`;
+        previousUIDs = new Set(basket.items.map(i => i.uidItem));
+        showToast("🛒 Basket updated!");
+      } catch (err) {
+        console.error(err);
+        showToast("❌ Failed to load basket");
+      }
     }
-  }
 
-  function showToast(message) {
-    const toast = document.getElementById("toast");
-    toast.textContent = message;
-    toast.className = "toast show";
-    setTimeout(() => {
-      toast.className = toast.className.replace("show", "");
-    }, 3000);
-  }
+    async function checkout() {
+      const btn = document.querySelector(".btn-checkout");
+      btn.disabled = true;
+      try {
+        const res = await fetch(`${backend}/basket/checkout`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ basketId })
+        });
 
-  setInterval(loadBasket, 2000);
-  loadBasket();
-</script>
+        const data = await res.json();
+        const qrContainer = document.getElementById("qr");
+        qrContainer.style.display = "block";
+        qrContainer.innerHTML = "";
+        QRCode.toCanvas(qrContainer, data.qrData, { width: 220 });
+
+        showToast("✅ Show this QR to cashier");
+      } catch (err) {
+        console.error("Checkout error:", err);
+        showToast("❌ Checkout failed");
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    setInterval(loadBasket, 2000);
+    loadBasket();
+  </script>
+</body>
+</html>
