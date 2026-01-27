@@ -33,9 +33,7 @@
 <header>🛒 Smart Basket</header>
 
 <div class="basket-container" id="basket"></div>
-<div class="qr-container" style="text-align:center; margin:20px 0;">
-  <canvas id="qr"></canvas>
-</div>
+<div class="qr-container" id="qr" style="display: none;"></div>
 
 
 <footer>
@@ -115,14 +113,16 @@ async function checkout() {
     if (!data.qrData) throw new Error("No QR data returned");
 
     const qrContainer = document.getElementById("qr");
-    qrContainer.style.display = "block";
-    qrContainer.innerHTML = ""; // clear previous QR
+    qrContainer.style.display = "block";  // make sure it’s visible
+    qrContainer.innerHTML = "";           // clear old QR
 
-    QRCode.toCanvas(qrContainer, data.qrData, { width: 220 }, function (error) {
-      if (error) {
-        console.error(error);
+    // Generate QR as an image
+    QRCode.toDataURL(data.qrData, { width: 220 }, function(err, url) {
+      if (err) {
+        console.error(err);
         showToast("❌ Failed to generate QR");
       } else {
+        qrContainer.innerHTML = `<img src="${url}" alt="QR Code">`;
         showToast("✅ Show this QR to cashier");
       }
     });
@@ -132,8 +132,6 @@ async function checkout() {
     showToast("❌ Checkout failed");
   }
 }
-
-
 // Toast notification
 function showToast(message) {
   const toast = document.getElementById("toast");
