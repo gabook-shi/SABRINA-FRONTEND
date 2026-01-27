@@ -187,18 +187,48 @@
   }
 
   async function checkout() {
-    try {
-      const res = await fetch(`${backend}/basket/checkout`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ basketId })
-      });
+  try {
+    // Step 1: Checkout and generate QR
+    const res = await fetch(`${backend}/basket/checkout`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ basketId })
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      const qrContainer = document.getElementById("qr");
-      qrContainer.style.display = "block";
-      qrContainer.innerHTML = "";
+    const qrContainer = document.getElementById("qr");
+    qrContainer.style.display = "block";
+    qrContainer.innerHTML = "";
+
+    // Create canvas for QR code
+    const canvas = document.createElement("canvas");
+    qrContainer.appendChild(canvas);
+
+    // Generate QR code on the canvas
+    QRCode.toCanvas(canvas, basketId, { width: 220 }, function(error) {
+      if (error) console.error(error);
+    });
+
+    showToast("✅ Show this QR to cashier");
+
+    // Step 2: Clear the basket for next customer
+    await fetch(`${backend}/basket/update`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ basketId, uids: [] }) // empty the basket
+    });
+
+    // Step 3: Reset UI
+    document.getElementById("basket").innerHTML = "";
+    document.getElementById("total").textContent = "Total: ₱0";
+    previousUIDs = new Set();
+
+  } catch (err) {
+    console.error(err);
+    showToast("❌ Checkout failed");
+  }
+}
 
       // Create canvas for QR code
       const canvas = document.createElement("canvas");
