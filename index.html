@@ -152,81 +152,87 @@
   <div id="toast" class="toast">Basket updated!</div>
 
  <script>
-  const basketId = "basket00188"; // replace with dynamic ID if needed
-  let previousItems = [];
+  const backend = "https://sabrina-backend-mwqy.onrender.com";
+  const basketId = "basket00188";
 
-  function hasBasketChanged(newItems) {
-    if (newItems.length !== previousItems.length) return true;
-    for (let i = 0; i < newItems.length; i++) {
-      const a = newItems[i];
-      const b = previousItems[i];
-      if (
-        a.display_id !== b.display_id ||
-        a.price !== b.price ||
-        a.quantity !== b.quantity
-      ) {
-        return true;
-      }
+  let previousUIDs = new Set();
+
+  function hasBasketChanged(items) {
+    const newUIDs = new Set(items.map(i => i.uidItem));
+
+    if (newUIDs.size !== previousUIDs.size) return true;
+
+    for (let uid of newUIDs) {
+      if (!previousUIDs.has(uid)) return true;
     }
     return false;
   }
 
   async function loadBasket() {
     try {
-      const response = await fetch(`https://sabrina-backend-mwqy.onrender.com/basket/view/${basketId}`); 
-      const data = await response.json();
+      const res = await fetch(`${backend}/basket/${basketId}`);
+      const basket = await res.json();
 
-      if (!Array.isArray(data.items)) return;
+      if (!basket || !Array.isArray(basket.items)) return;
 
-      if (hasBasketChanged(data.items)) {
-        const basketContainer = document.getElementById("basket");
-        basketContainer.innerHTML = "";
+      if (!hasBasketChanged(basket.items)) return;
 
-        let total = 0;
+      const basketContainer = document.getElementById("basket");
+      basketContainer.innerHTML = "";
 
-        data.items.forEach(item => {
-          total += item.price * item.quantity;
+      let total = 0;
 
-          const card = document.createElement("div");
-          card.className = "basket-card";
+      basket.items.forEach(item => {
+        total += item.itemPrice;
 
-          const icon = document.createElement("div");
-          icon.className = "product-icon";
-          if (item.display_id.includes("MILK")) icon.textContent = "🥛";
-          else if (item.display_id.includes("BREAD")) icon.textContent = "🍞";
-          else if (item.display_id.includes("EGGS")) icon.textContent = "🥚";
-          else icon.textContent = "📦";
+        const card = document.createElement("div");
+        card.className = "basket-card";
 
-          const info = document.createElement("div");
-          info.className = "product-info";
-          info.innerHTML = `<h3>${item.display_id}</h3><p>₱${item.price} x ${item.quantity}</p>`;
+        const icon = document.createElement("div");
+        icon.className = "product-icon";
+        icon.textContent = "📦";
 
-          card.appendChild(icon);
-          card.appendChild(info);
-          basketContainer.appendChild(card);
-        });
+        const info = document.createElement("div");
+        info.className = "product-info";
+        info.innerHTML = `
+          <h3>${item.itemName}</h3>
+          <p>₱${item.itemPrice}</p>
+        `;
 
-        document.getElementById("total").textContent = `Total: ₱${total}`;
-        showToast("🛒 Basket updated!");
-        previousItems = data.items;
-      }
+        card.appendChild(icon);
+        card.appendChild(info);
+        basketContainer.appendChild(card);
+      });
+
+      document.getElementById("total").textContent = `Total: ₱${total}`;
+      previousUIDs = new Set(basket.items.map(i => i.uidItem));
+
+      showToast("🛒 Basket updated!");
     } catch (err) {
-      console.error("Error loading basket:", err);
-      showToast("❌ Error updating basket");
+      console.error(err);
+      showToast("❌ Failed to load basket");
     }
   }
 
   async function checkout() {
     try {
-      const qrRes = await fetch(`https://sabrina-backend-mwqy.onrender.com/basket/qr/${basketId}`);
-      const qrData = await qrRes.json();
+      const res = await fetch(`${backend}/basket/checkout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ basketId })
+      });
+
+      const data = await res.json();
+
       const qrContainer = document.getElementById("qr");
       qrContainer.style.display = "block";
-      qrContainer.innerHTML = `<img src="${qrData.qr}" width="200" alt="Basket QR"/>`;
+      qrContainer.innerHTML = "";
 
-      showToast("✅ QR code generated for checkout!");
+      QRCode.toCanvas(qrContainer, data.qrData, { width: 220 });
+
+      showToast("✅ Show this QR to cashier");
     } catch (err) {
-      console.error("Checkout error:", err);
+      console.error(err);
       showToast("❌ Checkout failed");
     }
   }
@@ -235,15 +241,11 @@
     const toast = document.getElementById("toast");
     toast.textContent = message;
     toast.className = "toast show";
-    setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+    setTimeout(() => {
+      toast.className = toast.className.replace("show", "");
+    }, 3000);
   }
 
-  // Auto-refresh basket every 5 seconds
-  setInterval(loadBasket, 5000);
+  setInterval(loadBasket, 2000);
   loadBasket();
 </script>
-</body>
-</html>
-
-
-
