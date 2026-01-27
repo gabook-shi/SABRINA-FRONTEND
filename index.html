@@ -7,7 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 
   <!-- QR Code library -->
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
   <style>
     body { font-family: 'Poppins', sans-serif; background: #f4f6f9; margin:0; padding:0; }
@@ -106,25 +106,30 @@ async function checkout() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ basketId })
     });
+
     const data = await res.json();
+
+    if (!data.qrData) throw new Error("No QR data returned");
 
     const qrContainer = document.getElementById("qr");
     qrContainer.style.display = "block";
-    qrContainer.innerHTML = "";
+    qrContainer.innerHTML = ""; // clear previous QR
 
-    QRCode.toCanvas(qrContainer, basketId, { width: 220 }, function(error) {
-      if (error) console.error(error);
+    QRCode.toCanvas(qrContainer, data.qrData, { width: 220 }, function (error) {
+      if (error) {
+        console.error(error);
+        showToast("❌ Failed to generate QR");
+      } else {
+        showToast("✅ Show this QR to cashier");
+      }
     });
-
-    showToast("✅ Show this QR to cashier");
-
-    // Do NOT clear basket yet — cashier will handle clearing after payment
 
   } catch (err) {
     console.error(err);
     showToast("❌ Checkout failed");
   }
 }
+
 
 // Toast notification
 function showToast(message) {
