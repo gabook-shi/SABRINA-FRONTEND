@@ -109,14 +109,17 @@ async function checkout() {
     });
 
     const data = await res.json();
-
     if (!data.qrData) throw new Error("No QR data returned");
 
     const qrContainer = document.getElementById("qr");
-    qrContainer.style.display = "block";  // make sure it’s visible
-    qrContainer.innerHTML = "";           // clear old QR
 
-    // Generate QR as an image
+    // Step 1: Make visible BEFORE generating QR
+    qrContainer.style.display = "block";
+
+    // Step 2: Clear previous QR (if any)
+    qrContainer.innerHTML = "";
+
+    // Step 3: Generate QR as <img> (works even if container was hidden before)
     QRCode.toDataURL(data.qrData, { width: 220 }, function(err, url) {
       if (err) {
         console.error(err);
@@ -132,6 +135,7 @@ async function checkout() {
     showToast("❌ Checkout failed");
   }
 }
+
 // Toast notification
 function showToast(message) {
   const toast = document.getElementById("toast");
