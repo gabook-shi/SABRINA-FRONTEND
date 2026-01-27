@@ -191,46 +191,29 @@
 
   // Checkout function
   async function checkout() {
-    try {
-      // Step 1: Generate QR and mark basket as PAID
-      const res = await fetch(`${backend}/basket/checkout`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ basketId })
-      });
-      const data = await res.json();
+  try {
+    const res = await fetch(`${backend}/basket/checkout`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ basketId })
+    });
 
-      // Step 2: Show QR code
-      const qrContainer = document.getElementById("qr");
-      qrContainer.style.display = "block";
-      qrContainer.innerHTML = "";
+    const data = await res.json();
 
-      const canvas = document.createElement("canvas");
-      qrContainer.appendChild(canvas);
+    const qrContainer = document.getElementById("qr");
+    qrContainer.style.display = "block";
+    qrContainer.innerHTML = "";
+    QRCode.toCanvas(qrContainer, basketId, { width: 220 });
 
-      QRCode.toCanvas(canvas, basketId, { width: 220 }, function(error) {
-        if (error) console.error(error);
-      });
+    showToast("✅ Show this QR to cashier");
 
-      showToast("✅ Show this QR to cashier");
+    // Do NOT clear basket items here
 
-      // Step 3: Clear basket for next customer
-      await fetch(`${backend}/basket/update`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ basketId, uids: [] })
-      });
-
-      // Step 4: Reset frontend UI
-      document.getElementById("basket").innerHTML = "";
-      document.getElementById("total").textContent = "Total: ₱0";
-      previousUIDs = new Set();
-
-    } catch (err) {
-      console.error(err);
-      showToast("❌ Checkout failed");
-    }
+  } catch (err) {
+    console.error(err);
+    showToast("❌ Checkout failed");
   }
+}
 
   // Poll basket every 2 seconds
   setInterval(loadBasket, 2000);
