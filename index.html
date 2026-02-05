@@ -69,6 +69,8 @@ async function loadBasket() {
 
     if (!basket || !Array.isArray(basket.items)) return;
 
+    if (!hasBasketChanged(basket.items)) return;
+
     const basketContainer = document.getElementById("basket");
     basketContainer.innerHTML = "";
 
@@ -101,13 +103,13 @@ async function loadBasket() {
     });
 
     document.getElementById("total").textContent = `Total: ₱${total}`;
+    previousItems = new Map(basket.items.map(i => [i.uidItem, i.quantity]));
     showToast("🛒 Basket updated!");
   } catch (err) {
     console.error(err);
     showToast("❌ Failed to load basket");
   }
 }
-
 
 // Update item quantity
 async function updateQuantity(uid, delta) {
