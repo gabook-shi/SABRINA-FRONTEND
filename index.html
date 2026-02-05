@@ -49,15 +49,17 @@
 const backend = "https://sabrina-backend-mwqy.onrender.com";
 const basketId = "basket001"; // Adjust if needed
 
-let previousUIDs = new Set();
+let previousItems = new Map();
 
-// Compare current basket items to previous
 function hasBasketChanged(items) {
-  const newUIDs = new Set(items.map(i => i.uidItem));
-  if (newUIDs.size !== previousUIDs.size) return true;
-  for (let uid of newUIDs) if (!previousUIDs.has(uid)) return true;
+  const newItems = new Map(items.map(i => [i.uidItem, i.quantity]));
+  if (newItems.size !== previousItems.size) return true;
+  for (let [uid, qty] of newItems) {
+    if (!previousItems.has(uid) || previousItems.get(uid) !== qty) return true;
+  }
   return false;
 }
+
 
 // Load basket from backend every 2 seconds
 async function loadBasket() {
