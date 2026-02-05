@@ -60,7 +60,6 @@ function hasBasketChanged(items) {
   return false;
 }
 
-
 // Load basket from backend every 2 seconds
 async function loadBasket() {
   try {
@@ -69,42 +68,45 @@ async function loadBasket() {
 
     if (!basket || !Array.isArray(basket.items)) return;
 
-    if (!hasBasketChanged(basket.items)) return;
+    const newItems = new Map(basket.items.map(i => [i.uidItem, i.quantity]));
+    const changed = hasBasketChanged(basket.items);
 
-    const basketContainer = document.getElementById("basket");
-    basketContainer.innerHTML = "";
+    if (changed) {
+      const basketContainer = document.getElementById("basket");
+      basketContainer.innerHTML = "";
 
-    let total = 0;
-    basket.items.forEach(item => {
-      const quantity = item.quantity || 1;
-      total += item.itemPrice * quantity;
+      let total = 0;
+      basket.items.forEach(item => {
+        const quantity = item.quantity || 1;
+        total += item.itemPrice * quantity;
 
-      const card = document.createElement("div");
-      card.className = "basket-card";
+        const card = document.createElement("div");
+        card.className = "basket-card";
 
-      const icon = document.createElement("div");
-      icon.className = "product-icon";
-      icon.textContent = "📦";
+        const icon = document.createElement("div");
+        icon.className = "product-icon";
+        icon.textContent = "📦";
 
-      const info = document.createElement("div");
-      info.className = "product-info";
-      info.innerHTML = `
-        <h3>${item.itemName}</h3>
-        <p>₱${item.itemPrice} × 
-          <button onclick="updateQuantity('${item.uidItem}', -1)">−</button>
-          <span id="qty-${item.uidItem}">${quantity}</span>
-          <button onclick="updateQuantity('${item.uidItem}', 1)">+</button>
-        </p>
-      `;
+        const info = document.createElement("div");
+        info.className = "product-info";
+        info.innerHTML = `
+          <h3>${item.itemName}</h3>
+          <p>₱${item.itemPrice} × 
+            <button onclick="updateQuantity('${item.uidItem}', -1)">−</button>
+            <span id="qty-${item.uidItem}">${quantity}</span>
+            <button onclick="updateQuantity('${item.uidItem}', 1)">+</button>
+          </p>
+        `;
 
-      card.appendChild(icon);
-      card.appendChild(info);
-      basketContainer.appendChild(card);
-    });
+        card.appendChild(icon);
+        card.appendChild(info);
+        basketContainer.appendChild(card);
+      });
 
-    document.getElementById("total").textContent = `Total: ₱${total}`;
-    previousItems = new Map(basket.items.map(i => [i.uidItem, i.quantity]));
-    showToast("🛒 Basket updated!");
+      document.getElementById("total").textContent = `Total: ₱${total}`;
+      previousItems = newItems;
+      showToast("🛒 Basket updated!");
+    }
   } catch (err) {
     console.error(err);
     showToast("❌ Failed to load basket");
@@ -181,3 +183,4 @@ function showToast(message) {
 setInterval(loadBasket, 2000);
 loadBasket();
 </script>
+
