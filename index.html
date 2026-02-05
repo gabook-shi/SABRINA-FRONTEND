@@ -43,6 +43,8 @@
 
 <div id="toast" class="toast">Basket updated!</div>
 
+<!-- ... (everything above remains unchanged) ... -->
+
 <script>
 const backend = "https://sabrina-backend-mwqy.onrender.com";
 const basketId = "basket001"; // Adjust if needed
@@ -71,7 +73,8 @@ async function loadBasket() {
 
     let total = 0;
     basket.items.forEach(item => {
-      total += item.itemPrice;
+      const quantity = item.quantity || 1;
+      total += item.itemPrice * quantity;
 
       const card = document.createElement("div");
       card.className = "basket-card";
@@ -82,7 +85,14 @@ async function loadBasket() {
 
       const info = document.createElement("div");
       info.className = "product-info";
-      info.innerHTML = `<h3>${item.itemName}</h3><p>₱${item.itemPrice}</p>`;
+      info.innerHTML = `
+        <h3>${item.itemName}</h3>
+        <p>₱${item.itemPrice} × 
+          <button onclick="updateQuantity('${item.uidItem}', -1)">−</button>
+          <span id="qty-${item.uidItem}">${quantity}</span>
+          <button onclick="updateQuantity('${item.uidItem}', 1)">+</button>
+        </p>
+      `;
 
       card.appendChild(icon);
       card.appendChild(info);
@@ -96,6 +106,27 @@ async function loadBasket() {
   } catch (err) {
     console.error(err);
     showToast("❌ Failed to load basket");
+  }
+}
+
+// Update item quantity
+async function updateQuantity(uid, delta) {
+  try {
+    const res = await fetch(`${backend}/basket/update-quantity`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ basketId, uidItem: uid, delta })
+    });
+
+    const result = await res.json();
+    if (result.success) {
+      loadBasket(); // Refresh basket
+    } else {
+      showToast("⚠️ Could not update quantity");
+    }
+  } catch (err) {
+    console.error(err);
+    showToast("❌ Error updating quantity");
   }
 }
 
@@ -148,5 +179,3 @@ function showToast(message) {
 setInterval(loadBasket, 2000);
 loadBasket();
 </script>
-</body>
-</html>
