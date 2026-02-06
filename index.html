@@ -113,11 +113,11 @@ async function loadBasket() {
 // updates total price
       document.getElementById("total").textContent = `Total: ₱${total}`;
       previousItems = newItems;
-      showToast("🛒 Basket updated!"); //shows a toast notification for success
+      showToast("Basket updated!"); //shows a toast notification for success
     }
   } catch (err) {
     console.error(err);
-    showToast("❌ Failed to load basket"); // if error occurs then failed to load basket
+    showToast("Failed to load basket"); // if error occurs then failed to load basket
   }
 }
 
@@ -138,11 +138,11 @@ async function updateQuantity(uid, delta) { // declares an async function
     if (result.success) {
       loadBasket(); // Refresh basket
     } else {
-      showToast("⚠️ Could not update quantity");
+      showToast("Could not update quantity");
     }
   } catch (err) {
     console.error(err);
-    showToast("❌ Error updating quantity");
+    showToast("Error updating quantity");
   }
 }
 
@@ -170,16 +170,16 @@ async function checkout() {
     QRCode.toDataURL(data.qrData, { width: 220 }, function(err, url) {
       if (err) {
         console.error(err);
-        showToast("❌ Failed to generate QR");
+        showToast("Failed to generate QR");
       } else {
         qrContainer.innerHTML = `<img src="${url}" alt="QR Code">`;
-        showToast("✅ Show this QR to cashier");
+        showToast("Show this QR to cashier");
       }
     });
 
   } catch (err) {
     console.error(err);
-    showToast("❌ Checkout failed");
+    showToast("Checkout failed");
   }
 }
 
