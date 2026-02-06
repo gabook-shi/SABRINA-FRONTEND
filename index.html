@@ -8,6 +8,7 @@
 
   <!-- QR Code library -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <!-- Hosted via Content Delievery Network not Locally -->
 
   <style>
     body { font-family: 'Poppins', sans-serif; background: #f4f6f9; margin:0; padding:0; }
@@ -31,6 +32,7 @@
 </head>
 <body>
 <header>S.A.B.R.I.N.A.</header>
+  <!-- The overall design of the page (fonts, toasts, fonts) -->
 
 <div class="basket-container" id="basket"></div>
 <div class="qr-container" id="qr" style="display: none;"></div>
@@ -43,50 +45,55 @@
 
 <div id="toast" class="toast">Basket updated!</div>
 
-<!-- ... (everything above remains unchanged) ... -->
+<!-- ... (everything above concerns the websites overall design) ... -->
 
 <script>
 const backend = "https://sabrina-backend-mwqy.onrender.com";
-const basketId = "basket001"; // Adjust if needed
+const basketId = "basket001"; 
+// defines the backend API via URL and sets a unique Id for the basket
 
 let previousItems = new Map();
+// keeps track of previous items to detect changes
 
-function hasBasketChanged(items) {
-  const newItems = new Map(items.map(i => [i.uidItem, i.quantity]));
-  if (newItems.size !== previousItems.size) return true;
+function hasBasketChanged(items) {   // compares new basket with old basket to detect changes
+  const newItems = new Map(items.map(i => [i.uidItem, i.quantity])); // makes use of Key-Value (UID, QUANTITY) 
+  if (newItems.size !== previousItems.size) return true; // quantity change
   for (let [uid, qty] of newItems) {
-    if (!previousItems.has(uid) || previousItems.get(uid) !== qty) return true;
+    if (!previousItems.has(uid) || previousItems.get(uid) !== qty) return true; //uid change
   }
   return false;
+  // if no changes then return false the basket doesnt have to change, if changes then the basket has to change
 }
+  
 
-// Load basket from backend every 2 seconds
+// fetches the latest basket data from the backend every 2 seconds
 async function loadBasket() {
   try {
-    const res = await fetch(`${backend}/basket/${basketId}`);
-    const basket = await res.json();
+    const res = await fetch(`${backend}/basket/${basketId}`); //sends request to backend 
+    const basket = await res.json(); //converts the received raw data (text) to JSON (parses that raw text into a working javascript object we can work with)
 
-    if (!basket || !Array.isArray(basket.items)) return;
+    if (!basket || !Array.isArray(basket.items)) return; //safety check 
 
-    const newItems = new Map(basket.items.map(i => [i.uidItem, i.quantity]));
-    const changed = hasBasketChanged(basket.items);
+    const newItems = new Map(basket.items.map(i => [i.uidItem, i.quantity])); //build a map of the new basket items
+    const changed = hasBasketChanged(basket.items); //checks to see if the basket has changed 
 
     if (changed) {
       const basketContainer = document.getElementById("basket");
-      basketContainer.innerHTML = "";
+      basketContainer.innerHTML = ""; // if changed clears the old basket display
 
-      let total = 0;
+      let total = 0; 
       basket.items.forEach(item => {
         const quantity = item.quantity || 1;
-        total += item.itemPrice * quantity;
+        total += item.itemPrice * quantity; // calculates total price by multiplying item price and quantity
 
         const card = document.createElement("div");
-        card.className = "basket-card";
+        card.className = "basket-card"; //creates a card for the new item
 
         const icon = document.createElement("div");
         icon.className = "product-icon";
-        icon.textContent = "📦";
+        icon.textContent = "📦"; // adds an icon for the new card
 
+        // sets product info (item name, item price, also incharge for the quantity buttons
         const info = document.createElement("div");
         info.className = "product-info";
         info.innerHTML = `
@@ -95,34 +102,39 @@ async function loadBasket() {
             <button onclick="updateQuantity('${item.uidItem}', -1)">−</button>
             <span id="qty-${item.uidItem}">${quantity}</span>
             <button onclick="updateQuantity('${item.uidItem}', 1)">+</button>
-          </p>
+          </p> 
         `;
 
         card.appendChild(icon);
         card.appendChild(info);
         basketContainer.appendChild(card);
+        // assembles card info and then places the info inside the container in the page
       });
-
+// updates total price
       document.getElementById("total").textContent = `Total: ₱${total}`;
       previousItems = newItems;
-      showToast("🛒 Basket updated!");
+      showToast("🛒 Basket updated!"); //shows a toast notification for success
     }
   } catch (err) {
     console.error(err);
-    showToast("❌ Failed to load basket");
+    showToast("❌ Failed to load basket"); // if error occurs then failed to load basket
   }
 }
 
 // Update item quantity
-async function updateQuantity(uid, delta) {
+  // triggers when customer presses the + - button which sends a request to the backend to adjust the quantity of the item
+  // if successful reload display then updates total and reload display
+
+  
+async function updateQuantity(uid, delta) { // declares an async function 
   try {
-    const res = await fetch(`${backend}/basket/update-quantity`, {
+    const res = await fetch(`${backend}/basket/update-quantity`, { //command to send API POST to backend endpoint 
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ basketId, uidItem: uid, delta })
     });
 
-    const result = await res.json();
+    const result = await res.json(); //converts data received into workable javascript object
     if (result.success) {
       loadBasket(); // Refresh basket
     } else {
@@ -137,13 +149,13 @@ async function updateQuantity(uid, delta) {
 // Checkout → generate QR, keep basket for cashier
 async function checkout() {
   try {
-    const res = await fetch(`${backend}/basket/checkout`, {
+    const res = await fetch(`${backend}/basket/checkout`, { //sends a POST request to the backend endpoint
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ basketId })
+      body: JSON.stringify({ basketId }) //includes the ID so the server knows which basket to checkout
     });
 
-    const data = await res.json();
+    const data = await res.json(); //converts received data (qr data = basket001 : checkout) into JSON 
     if (!data.qrData) throw new Error("No QR data returned");
 
     const qrContainer = document.getElementById("qr");
